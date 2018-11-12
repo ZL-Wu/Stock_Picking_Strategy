@@ -40,7 +40,20 @@ namespace IEXTrading.Infrastructure.IEXTradingHandler
             if (!companyList.Equals(""))
             {
                 companies = JsonConvert.DeserializeObject<List<Company>>(companyList);
-                companies = companies.GetRange(0, 9);
+                companies = companies.GetRange(0, 40);
+                //TODO:Pick out 30 companies which have lowest PE ratio
+                foreach(Company company in companies)
+                {
+                    IEXHandler webHandler2 = new IEXHandler();
+                    Quote quote = webHandler2.GetQuote(company.symbol);
+                    if (quote.peRatio > 0)
+                    {
+                        company.peRatio = quote.peRatio;
+                    } else {
+                        company.peRatio = 10000;
+                    }
+                }
+                companies = companies.OrderBy(c => c.peRatio).ToList().GetRange(0, 20);
             }
             return companies;
         }
@@ -76,6 +89,63 @@ namespace IEXTrading.Infrastructure.IEXTradingHandler
             }
 
             return Equities;
+        }
+
+        public Quote GetQuote(string symbol)
+        {
+            string IEXTrading_API_PATH = BASE_URL + "stock/" + symbol + "/quote";
+            string quotestr = "";
+            Quote Quotes = new Quote();
+            httpClient.BaseAddress = new Uri(IEXTrading_API_PATH);
+            HttpResponseMessage response = httpClient.GetAsync(IEXTrading_API_PATH).GetAwaiter().GetResult();
+            if (response.IsSuccessStatusCode)
+            {
+                quotestr = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            }
+
+            if (!quotestr.Equals(""))
+            {
+                //Only need two values in this case
+                string[] q = quotestr.Split(',');
+                string newQ = q[0] + ',' + q[37] + '}';
+                if (newQ.Split(':')[2] != "null}")
+                {
+                    Quotes = JsonConvert.DeserializeObject<Quote>(newQ);
+                }
+            }
+            return Quotes;
+        }
+
+
+        public Financial getFinancial(string symbol)
+        {
+            string IEXTrading_API_PATH = BASE_URL + "/stock/" + symbol + "/financials?period=quarter";
+            Financial financial = new Financial();
+            string financialDetails = "";
+            httpClient.BaseAddress = new Uri(IEXTrading_API_PATH);
+            HttpResponseMessage response = httpClient.GetAsync(IEXTrading_API_PATH).GetAwaiter().GetResult();
+            if (response.IsSuccessStatusCode)
+            {
+                financialDetails = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            }
+            if (!financialDetails.Equals(""))
+            {
+                char[] delimiters = new char[] { '\"', '\n', ':', ','};
+                string[] f = financialDetails.Split(delimiters);
+                string s = f[4];
+                string o = f[26];
+                string t = f[54];
+                string c = f[86];
+                if (o == "null") { o = "-1000000"; } 
+                if (t == "null") { t = "-1000000"; }
+                if (c == "null") { t = "-1000000"; }
+
+                financial.symbol = s;
+                financial.operatingRevenue = o;
+                financial.totalAssets = t;
+                financial.cashFlow = c;
+            }
+            return financial;
         }
     }
 }

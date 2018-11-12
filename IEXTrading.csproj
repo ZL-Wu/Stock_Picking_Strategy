@@ -17,4 +17,15 @@
     <Folder Include="wwwroot\images\NewFolder\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Models\StockStrategy.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Remove="wwwroot\js\site.js" />
+    <Content Remove="Views\Home\chartTest.cshtml" />
+    <Content Remove="wwwroot\images\bull-usf-full.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="wwwroot\images\bull-usf-full.png" />
+  </ItemGroup>
 </Project>

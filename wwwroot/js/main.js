@@ -66,16 +66,32 @@
 }
 
 
-function getStockChart() {
-    var data = getRandomData('April 01 2017', 100);
-    var ctx = document.getElementById("StockChart").getContext("2d");
-        ctx.canvas.width = 1000;
-        ctx.canvas.height = 250;
-        new Chart(ctx, {
+function getStockChart(Open, High, Low, Close, Dates) {
+    //var data = getRandomData('April 01 2017', 100);
+    
+    var dates = Dates.split(",");
+    var open = Open.split(",");
+    var high = High.split(",");
+    var low = Low.split(",");
+    var close = Close.split(",");
+    
+    var data = new Array();
+    for(var i = 0; i < dates.length; i++)
+    {
+        if(parseInt(open[i]) != 0){
+            bar = {o: parseFloat(open[i]), h: parseFloat(high[i]), l: parseFloat(low[i]), c: parseFloat(close[i]), t: dates[i]};
+            data.push(bar);
+        }
+    }
+
+    var ctx2 = document.getElementById("StockChart").getContext("2d");
+        ctx2.canvas.width = 1000;
+        ctx2.canvas.height = 250;
+        new Chart(ctx2, {
             type: 'candlestick',
             data: {
                 datasets: [{
-                    label: "CHRT - Chart.js Corporation",
+                    label: "Corporation K line Graph",
                     data: data,
                     fractionalDigitsCount: 2,
                     backgroundColor: 'rgba(0, 103, 71, 0.1)'
